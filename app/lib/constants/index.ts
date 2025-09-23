@@ -1,13 +1,13 @@
-const MINIAPP_TITLE = "MINIAPP_TITLE"
+const MINIAPP_TITLE = "reviews"
 
-const MINIAPP_DESCRIPTION = "MINIAPP_DESCRIPTION"
+const MINIAPP_DESCRIPTION = "reviews mini app"
 
 const MINIAPP = {
   version: "next",
   imageUrl: `https://${process.env.NEXT_PUBLIC_HOST}/images/og/cast/image.jpg`,
   aspectRatio: "3:2",
   button: {
-    title: "TITLE",
+    title: "check out",
     action: {
       type: "launch_miniapp",
       url: `https://${process.env.NEXT_PUBLIC_HOST}`,

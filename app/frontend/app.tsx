@@ -6,7 +6,8 @@ import { useEffect } from "react"
 import { BrowserRouter, Route, Routes } from "react-router"
 import Header from "./components/Header"
 import Menu from "./components/Menu"
-import Home from "./pages/Home"
+import Reviews from "./pages/Reviews"
+import Profile from "./pages/Profile"
 
 export default function App() {
   useEffect(() => {
@@ -45,7 +46,16 @@ export default function App() {
               element={
                 <>
                   <Header />
-                  <Home />
+                  <Reviews />
+                </>
+              }
+            />
+            <Route
+              path="/profile"
+              element={
+                <>
+                  <Header />
+                  <Profile />
                 </>
               }
             />
