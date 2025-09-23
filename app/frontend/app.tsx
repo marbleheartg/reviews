@@ -6,6 +6,7 @@ import { useEffect } from "react"
 import { BrowserRouter, Route, Routes } from "react-router"
 import Header from "./components/Header"
 import Menu from "./components/Menu"
+import CustomCursor from "./components/CustomCursor"
 import Reviews from "./pages/Reviews"
 import Profile from "./pages/Profile"
 
@@ -40,6 +41,7 @@ export default function App() {
     <div onDragStart={e => e.preventDefault()}>
       <Providers>
         <BrowserRouter>
+          <CustomCursor />
           <Routes>
             <Route
               path="/"

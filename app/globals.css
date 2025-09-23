@@ -16,6 +16,7 @@
 @layer base {
   * {
     @apply select-none touch-manipulation;
+    cursor: none;
   }
 
   body {
@@ -32,7 +33,7 @@
   }
 
   button {
-    @apply bg-white text-black px-3 py-1 pb-1.5 cursor-pointer rounded-lg;
+    @apply bg-white text-black px-3 py-1 pb-1.5 rounded-lg;
   }
 
   input[type="text"] {
@@ -52,4 +53,17 @@
     -moz-appearance: none;
     appearance: none;
   }
+}
+
+/* Custom animated cursor overlay */
+.custom-cursor {
+  position: fixed;
+  width: 28px;
+  height: 28px;
+  top: 0;
+  left: 0;
+  pointer-events: none;
+  z-index: 9999;
+  will-change: transform;
+  transform: translate3d(-9999px, -9999px, 0);
 }
