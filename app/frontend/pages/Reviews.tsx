@@ -12,7 +12,7 @@ export default function Reviews() {
   }, [])
 
   return (
-    <main className={clsx("fixed top-50 bottom-0 inset-x-1/12")}>
+    <main className={clsx("fixed top-44 bottom-0 inset-x-1/12")}>
       {Array.from({ length: 3 }).map((_, i) => (
         <div key={i} className={clsx("bg-white text-black rounded-lg mb-3")}>
           <div className={clsx("flex justify-between items-center p-3")}>
