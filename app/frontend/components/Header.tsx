@@ -7,6 +7,8 @@ const Header = () => {
 
   return (
     <header className={clsx("fixed top-10 inset-x-0")}>
+      <appkit-button />
+
       <div className={clsx("relative aspect-[308/85] w-85 mx-auto")}>
         {/* <Image src={"/images/global/logo.svg"} fill unoptimized alt="logo" /> */}
       </div>

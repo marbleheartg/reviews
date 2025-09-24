@@ -1,12 +1,11 @@
 "use client"
 
-import { farcasterMiniApp as miniAppConnector } from "@farcaster/miniapp-wagmi-connector"
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
-import { http } from "viem"
-import { base } from "viem/chains"
-import { cookieStorage, createConfig, createStorage, WagmiProvider } from "wagmi"
-import { mainnet, arbitrum } from "@reown/appkit/networks"
 import { WagmiAdapter } from "@reown/appkit-adapter-wagmi"
+import { arbitrum, base, mainnet } from "@reown/appkit/networks"
+import { createAppKit } from "@reown/appkit/react"
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
+import { cookieStorage, cookieToInitialState, createStorage, WagmiProvider, type Config } from "wagmi"
+import { MINIAPP_DESCRIPTION, MINIAPP_TITLE } from "../constants"
 
 const projectId = process.env.NEXT_PUBLIC_PROJECT_ID
 if (!projectId) throw new Error("Project ID is not defined")
@@ -41,9 +40,28 @@ const tanstackQueryClient = new QueryClient({
   },
 })
 
+// Set up metadata
+const metadata = {
+  name: MINIAPP_TITLE,
+  description: MINIAPP_DESCRIPTION,
+  url: `https://${process.env.NEXT_PUBLIC_HOST}`, // origin must match your domain & subdomain
+  icons: ["https://avatars.githubusercontent.com/u/179229932"],
+}
+
+// Create the modal
+createAppKit({
+  adapters: [wagmiAdapter],
+  projectId,
+  networks: [base],
+  defaultNetwork: base,
+  metadata,
+})
+
 export default function Providers({ children }: { children: React.ReactNode }) {
+  const initialState = cookieToInitialState(wagmiAdapter.wagmiConfig as Config)
+
   return (
-    <WagmiProvider config={wagmiAdapter.wagmiConfig}>
+    <WagmiProvider config={wagmiAdapter.wagmiConfig} initialState={initialState}>
       <QueryClientProvider client={tanstackQueryClient}>{children}</QueryClientProvider>
     </WagmiProvider>
   )
