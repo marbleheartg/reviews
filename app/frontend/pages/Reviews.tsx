@@ -37,9 +37,7 @@ export default function Reviews() {
       {Array.from({ length: 3 }).map((_, i) => (
         <div key={i} className={clsx("bg-white text-black rounded-lg mb-3")}>
           <div className={clsx("flex justify-between items-center p-3")}>
-            <div className={clsx("max-w-[80%] truncate")}>
-              {result.data ? result.data?.toString() : result.isLoading ? "Loading..." : result.error ? result.error.message : "No data"}
-            </div>
+            <div className={clsx("max-w-[80%] truncate")}>{data?.toString()}</div>
 
             <div
               className={clsx("relative z-10", "aspect-square w-[32px]", "bg-[var(--accent)]", "rounded-full", "outline-2 outline-[var(--accent)]")}

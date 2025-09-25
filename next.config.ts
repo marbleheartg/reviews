@@ -1,10 +1,11 @@
 import type { NextConfig } from "next"
 
-const { NEXT_PUBLIC_HOST } = process.env
-if (!NEXT_PUBLIC_HOST) throw new Error("NextConfigCredentialsNotConfigured")
+const { NEXT_PUBLIC_HOST, NEXT_PUBLIC_NODE } = process.env
+if (!NEXT_PUBLIC_HOST || !NEXT_PUBLIC_NODE) throw new Error("NextConfigCredentialsNotConfigured")
 
 const nextConfig: NextConfig = {
-  allowedDevOrigins: [NEXT_PUBLIC_HOST],
+  allowedDevOrigins: [NEXT_PUBLIC_HOST, NEXT_PUBLIC_NODE],
+
   images: {
     remotePatterns: [
       {
