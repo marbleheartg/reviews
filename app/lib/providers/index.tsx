@@ -4,7 +4,7 @@ import { WagmiAdapter } from "@reown/appkit-adapter-wagmi"
 import { arbitrum, base, mainnet } from "@reown/appkit/networks"
 import { createAppKit } from "@reown/appkit/react"
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
-import { cookieStorage, cookieToInitialState, createStorage, WagmiProvider, type Config } from "wagmi"
+import { cookieStorage, cookieToInitialState, createStorage, http, WagmiProvider, type Config } from "wagmi"
 import { MINIAPP_DESCRIPTION, MINIAPP_TITLE } from "../constants"
 
 const projectId = process.env.NEXT_PUBLIC_PROJECT_ID
@@ -16,9 +16,12 @@ const wagmiAdapter = new WagmiAdapter({
   storage: createStorage({
     storage: cookieStorage,
   }),
-  ssr: true,
+  ssr: false,
   projectId,
   networks,
+  transports: {
+    [base.id]: http("http://127.0.0.1:8545"),
+  },
 })
 
 // const wagmiConfig = createConfig({
@@ -30,17 +33,6 @@ const wagmiAdapter = new WagmiAdapter({
 //   connectors: [miniAppConnector()],
 // })
 
-const tanstackQueryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      staleTime: 1000 * 60 * 30,
-      refetchOnMount: false,
-      refetchOnWindowFocus: false,
-    },
-  },
-})
-
-// Set up metadata
 const metadata = {
   name: MINIAPP_TITLE,
   description: MINIAPP_DESCRIPTION,
@@ -55,6 +47,16 @@ createAppKit({
   networks: [base],
   defaultNetwork: base,
   metadata,
+})
+
+const tanstackQueryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 1000 * 60 * 30,
+      refetchOnMount: false,
+      refetchOnWindowFocus: false,
+    },
+  },
 })
 
 export default function Providers({ children }: { children: React.ReactNode }) {
