@@ -3,7 +3,7 @@ import sdk from "@farcaster/miniapp-sdk"
 import clsx from "clsx"
 import Image from "next/image"
 import { useEffect } from "react"
-import { useReadContract } from "wagmi"
+import { useBlockNumber, useReadContract } from "wagmi"
 import { store, updateStore } from "../../lib/store"
 
 export default function Reviews() {
@@ -18,8 +18,14 @@ export default function Reviews() {
 
   // check the last block number of the blockchain
 
+  const result = useBlockNumber()
+
   useEffect(() => {
-    console.log("reviews", data, isLoading, error)
+    console.log("result", result?.data)
+  }, [result?.data])
+
+  useEffect(() => {
+    console.log("reviews", data?.toString(), isLoading, error)
   }, [data, isLoading, error])
 
   useEffect(() => {
@@ -32,7 +38,7 @@ export default function Reviews() {
         <div key={i} className={clsx("bg-white text-black rounded-lg mb-3")}>
           <div className={clsx("flex justify-between items-center p-3")}>
             <div className={clsx("max-w-[80%] truncate")}>
-              {data ? data?.toString() : isLoading ? "Loading..." : error ? error.message : "No data"}
+              {result.data ? result.data?.toString() : result.isLoading ? "Loading..." : result.error ? result.error.message : "No data"}
             </div>
 
             <div

@@ -1,16 +1,36 @@
 "use client"
 
 import { WagmiAdapter } from "@reown/appkit-adapter-wagmi"
-import { arbitrum, base, mainnet } from "@reown/appkit/networks"
 import { createAppKit } from "@reown/appkit/react"
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
+import { defineChain } from "viem"
 import { cookieStorage, cookieToInitialState, createStorage, http, WagmiProvider, type Config } from "wagmi"
 import { MINIAPP_DESCRIPTION, MINIAPP_TITLE } from "../constants"
 
 const projectId = process.env.NEXT_PUBLIC_PROJECT_ID
 if (!projectId) throw new Error("Project ID is not defined")
 
-const networks = [mainnet, arbitrum]
+const localNetwork = defineChain({
+  id: 31337, // This matches your deployment chain ID
+  name: "Local Network",
+  network: "local",
+  nativeCurrency: {
+    decimals: 18,
+    name: "Ether",
+    symbol: "ETH",
+  },
+  rpcUrls: {
+    default: {
+      http: [`https://${process.env.NEXT_PUBLIC_NODE}`],
+    },
+    public: {
+      http: [`https://${process.env.NEXT_PUBLIC_NODE}`],
+    },
+  },
+  blockExplorers: {
+    default: { name: "Local Explorer", url: `https://${process.env.NEXT_PUBLIC_NODE}` },
+  },
+})
 
 const wagmiAdapter = new WagmiAdapter({
   storage: createStorage({
@@ -18,9 +38,9 @@ const wagmiAdapter = new WagmiAdapter({
   }),
   ssr: false,
   projectId,
-  networks,
+  networks: [localNetwork],
   transports: {
-    [base.id]: http("http://127.0.0.1:8545"),
+    [localNetwork.id]: http(`https://${process.env.NEXT_PUBLIC_NODE}`),
   },
 })
 
@@ -44,8 +64,8 @@ const metadata = {
 createAppKit({
   adapters: [wagmiAdapter],
   projectId,
-  networks: [base],
-  defaultNetwork: base,
+  networks: [localNetwork],
+  defaultNetwork: localNetwork,
   metadata,
 })
 
