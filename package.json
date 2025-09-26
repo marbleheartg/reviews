@@ -1,11 +1,14 @@
 {
-  "name": "mini-app-template",
+  "name": "reviews",
   "module": "index.ts",
   "private": true,
   "scripts": {
     "fork": "clear && dotenv bunx hardhat node --fork https://base-mainnet.g.alchemy.com/v2/$ALCHEMY_API_KEY --fork-block-number 31564648",
     "test": "clear && bunx hardhat test",
-    "compile": "clear && bunx hardhat compile"
+    "dev": "clear && bun run compile && bun run deploy && bun run tunnel",
+    "compile": "clear && bunx hardhat compile",
+    "deploy": "clear && bunx hardhat ignition deploy ignition/modules/Reviews.ts --network localhost",
+    "tunnel": "clear && cloudflared tunnel --url http://localhost:8545"
   },
   "devDependencies": {
     "@nomicfoundation/hardhat-toolbox-viem": "^4.1.0",
@@ -17,8 +20,9 @@
   },
   "dependencies": {
     "@openzeppelin/contracts": "^5.4.0",
+    "@types/mocha": "^10.0.10",
     "dotenv": "^17.2.2",
-    "hardhat": "^2.26.3",
-    "viem": "^2.37.8"
+    "hardhat": "^2.26.0",
+    "viem": "^2.33.0"
   }
 }

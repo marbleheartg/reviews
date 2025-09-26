@@ -1,14 +1,26 @@
-# Mini App Template
+# Reviews Smart Contract
 
-A minimal Hardhat + Bun template for developing Solidity smart contracts with TypeScript tooling.
+A Solidity smart contract for managing user reviews with Farcaster integration, built with Hardhat + Bun. This project provides a decentralized review system where users can create reviews using their Farcaster ID (FID) and pay a small fee in ETH.
 
-### Features
+## Overview
+
+The Reviews contract allows users to:
+
+- Create reviews associated with their Farcaster ID (FID)
+- Pay a small fee (0.0001 ETH minimum) to submit reviews
+- Store positive or negative reviews with text content
+- Have reviews managed by the contract owner
+
+### Key Features
 
 - **Hardhat** with Solidity 0.8.28 (EVM Cancun)
 - **Forked Base Mainnet** support via Alchemy
 - **Bun** for fast scripts (`bunx` wrapper for Hardhat)
 - **OpenZeppelin Contracts** and **Viem**
-- Example contract, test, and Ignition module scaffold
+- FID-based user identification system
+- Pay-per-review system with ETH payments
+- Owner-controlled review deletion
+- Withdrawable contract balance
 
 ---
 
@@ -55,19 +67,41 @@ dotenv bunx hardhat node \
 
 Make sure `.env` contains `ALCHEMY_API_KEY`.
 
+## Contract Details
+
+### Review Structure
+
+```solidity
+struct Review {
+    uint256 fid;        // Farcaster ID
+    uint256 timestamp;  // Block timestamp when created
+    string text;        // Review content (1-100 characters)
+    bool isPositive;    // Whether review is positive or negative
+}
+```
+
+### Key Functions
+
+- `createReview(uint256 fid, string memory text, bool isPositive)` - Create a new review (requires 0.0001 ETH minimum)
+- `getReview(uint256 fid)` - Retrieve a review by FID
+- `deleteReview(uint256 fid)` - Delete a review (owner only)
+- `withdraw()` - Withdraw contract balance (owner only)
+
 ## Project Structure
 
 ```
 contracts/
-  Contract.sol            # Example contract
+  Reviews.sol             # Main Reviews smart contract
   types/
-    index.sol             # Types scaffold
+    index.sol             # Review struct definition
 ignition/
   modules/
-    Contract.ts           # Ignition deployment module (scaffold)
+    Reviews.ts            # Ignition deployment module
 test/
-  Contract.ts             # Example viem-based tests
+  Reviews.ts              # Viem-based tests for Reviews contract
 hardhat.config.ts         # Hardhat config (Cancun, Base fork)
+artifacts/                # Compiled contract artifacts
+cache/                    # Hardhat cache files
 ```
 
 ## Hardhat Configuration Notes
@@ -77,22 +111,66 @@ hardhat.config.ts         # Hardhat config (Cancun, Base fork)
 
 ## Deployment
 
-This repo includes an Ignition module scaffold at `ignition/modules/Contract.ts`. If you plan to deploy using Hardhat Ignition, ensure the plugin is installed and configured.
+### Using Thirdweb (Recommended)
 
-Basic approach (once plugin is added):
+Deploy your contract using Thirdweb:
 
 ```bash
-bunx hardhat ignition deploy ignition/modules/Contract.ts --network hardhat
+bunx thirdweb deploy -k <project-secret-key>
 ```
+
+### Using Hardhat Ignition
+
+This repo includes an Ignition module at `ignition/modules/Reviews.ts`. Deploy using:
+
+```bash
+bun run deploy
+```
+
+Or manually:
+
+```bash
+bunx hardhat ignition deploy ignition/modules/Reviews.ts --network localhost
+```
+
+### Contract Interaction
+
+After deployment, you can interact with the contract:
+
+```javascript
+// Create a review
+await contract.createReview(
+  fid, // Farcaster ID
+  "Great service!", // Review text
+  true, // Is positive
+  { value: ethers.parseEther("0.0001") } // Payment
+);
+
+// Get a review
+const review = await contract.getReview(fid);
+```
+
+## Testing
+
+Run the test suite to verify contract functionality:
+
+```bash
+bun run deploy
+```
+
+The tests cover:
+
+- Review creation with proper payment
+- Review retrieval
+- Owner-only functions (delete, withdraw)
+- Input validation and error handling
 
 ## Troubleshooting
 
-- Missing TypeScript: install a compatible version
-  ```bash
-  bun add -d typescript@^5.8.3
-  ```
-- Alchemy key not picked up: confirm `.env` exists and `ALCHEMY_API_KEY` is set.
-- Bun not found: open a new terminal so your shell picks up Bun, or install via the Bun docs.
+- **Alchemy key not picked up**: Confirm `.env` exists and `ALCHEMY_API_KEY` is set
+- **Bun not found**: Open a new terminal so your shell picks up Bun, or install via the Bun docs
+- **Compilation errors**: Ensure all dependencies are installed with `bun install`
+- **Fork issues**: Verify your Alchemy API key has access to Base mainnet
 
 ## License
 
