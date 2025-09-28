@@ -1,6 +1,7 @@
 "use client"
 
 import { WagmiAdapter } from "@reown/appkit-adapter-wagmi"
+import { AppKitNetwork } from "@reown/appkit-common"
 import { createAppKit } from "@reown/appkit/react"
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
 import { defineChain } from "viem"
@@ -35,7 +36,7 @@ const localNetwork = defineChain({
 const wagmiAdapter = new WagmiAdapter({
   ssr: false,
   projectId,
-  networks: [localNetwork],
+  networks: [localNetwork as AppKitNetwork],
   transports: {
     [localNetwork.id]: http(`https://${process.env.NEXT_PUBLIC_NODE}`),
   },
@@ -58,11 +59,11 @@ const metadata = {
 }
 
 // Create the modal
-createAppKit({
+const modal = createAppKit({
   adapters: [wagmiAdapter],
   projectId,
-  networks: [localNetwork],
-  defaultNetwork: localNetwork,
+  networks: [localNetwork as AppKitNetwork],
+  defaultNetwork: localNetwork as AppKitNetwork,
   metadata,
 })
 

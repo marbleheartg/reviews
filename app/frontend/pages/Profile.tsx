@@ -2,10 +2,10 @@ import { ABI, CA } from "@/lib/constants"
 import sdk from "@farcaster/miniapp-sdk"
 import clsx from "clsx"
 import Image from "next/image"
-import { useEffect, useState } from "react"
+import { useState } from "react"
 import { parseEther } from "viem"
 import { useAccount, useReadContract, useWriteContract } from "wagmi"
-import { store, updateStore } from "../../lib/store"
+import { store } from "../../lib/store"
 
 export default function Profile() {
   const { user } = store()
@@ -13,6 +13,7 @@ export default function Profile() {
   const [newReview, setNewReview] = useState("")
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [activeTab, setActiveTab] = useState<"received" | "sent">("received")
+  const [reviewSentiment, setReviewSentiment] = useState<"positive" | "negative">("positive")
 
   const { writeContract } = useWriteContract()
 
@@ -25,6 +26,9 @@ export default function Profile() {
     address: CA,
     functionName: "getReceivedReview",
     args: [user?.fid ? BigInt(user.fid) : BigInt(0), BigInt(0)],
+    query: {
+      enabled: !!user?.fid,
+    },
   })
 
   const {
@@ -41,28 +45,19 @@ export default function Profile() {
     },
   })
 
-  useEffect(() => {
-    console.log("Received data:", receivedData)
-    console.log("Sent data:", sentData)
-  }, [receivedData, sentData])
-
-  useEffect(() => {
-    updateStore({})
-  }, [])
-
   const handleSubmitReview = async () => {
     if (newReview.trim() && !isSubmitting) {
       setIsSubmitting(true)
       try {
-        console.log("New review:", newReview)
         await writeContract({
           abi: ABI,
           address: CA,
           functionName: "createReview",
-          args: [user?.fid ? BigInt(user.fid) : BigInt(0), newReview, true],
+          args: [user?.fid ? BigInt(user.fid) : BigInt(0), newReview, reviewSentiment === "positive"],
           value: parseEther("0.01"),
         })
         setNewReview("")
+        setReviewSentiment("positive")
       } catch (error) {
         console.error("Error submitting review:", error)
       } finally {
@@ -82,7 +77,7 @@ export default function Profile() {
   }
 
   return (
-    <main className={clsx("fixed top-30 bottom-0 inset-x-1/12 overflow-y-auto")}>
+    <main className={clsx("fixed top-30 bottom-0 inset-x-1/12 overflow-y-auto pb-30")}>
       {/* Profile Header */}
       <div className={clsx("mb-8")}>
         <div className={clsx("flex items-center gap-4 mb-6")}>
@@ -116,6 +111,51 @@ export default function Profile() {
       <div className={clsx("mb-8")}>
         <h2 className={clsx("text-lg font-semibold mb-4")}>Write a Review</h2>
         <div className={clsx("bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl p-4")}>
+          {/* Sentiment Selection */}
+          <div className={clsx("mb-4")}>
+            <label className={clsx("text-sm font-medium text-gray-300 mb-3 block")}>Review Type</label>
+            <div className={clsx("flex gap-2")}>
+              <button
+                onClick={() => setReviewSentiment("positive")}
+                className={clsx(
+                  "flex-1 py-3 px-4 rounded-lg font-medium transition-all duration-200",
+                  "flex items-center justify-center gap-2",
+                  reviewSentiment === "positive"
+                    ? "bg-green-500/20 text-green-400 border border-green-500/30"
+                    : "bg-white/10 text-gray-400 border border-white/20 hover:bg-white/20 hover:text-white",
+                )}
+              >
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                  />
+                </svg>
+              </button>
+              <button
+                onClick={() => setReviewSentiment("negative")}
+                className={clsx(
+                  "flex-1 py-3 px-4 rounded-lg font-medium transition-all duration-200",
+                  "flex items-center justify-center gap-2",
+                  reviewSentiment === "negative"
+                    ? "bg-red-500/20 text-red-400 border border-red-500/30"
+                    : "bg-white/10 text-gray-400 border border-white/20 hover:bg-white/20 hover:text-white",
+                )}
+              >
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M9.172 16.172a4 4 0 015.656 0M9 12h.01M15 12h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                  />
+                </svg>
+              </button>
+            </div>
+          </div>
+
           <div className={clsx("flex gap-3")}>
             <input
               type="text"
@@ -123,7 +163,7 @@ export default function Profile() {
               onChange={e => setNewReview(e.target.value)}
               placeholder="Share your thoughts..."
               className={clsx(
-                "flex-1 px-4 py-3 bg-white/10 border border-white/20 rounded-lg",
+                "flex-1 px-4 py-3 pl-3.5 bg-white/10 border border-white/20 rounded-lg",
                 "focus:outline-none focus:ring-2 focus:ring-white/30 focus:border-white/40",
                 "text-white text-sm placeholder-gray-400",
                 "transition-all duration-200",
@@ -157,7 +197,7 @@ export default function Profile() {
               )}
             </button>
           </div>
-          <div className={clsx("text-xs text-gray-400 mt-2")}>Press Enter to submit • 0.01 ETH required</div>
+          <div className={clsx("text-xs text-gray-400 mt-3")}>Press Enter to submit • 0.01 ETH required</div>
         </div>
       </div>
 
@@ -166,12 +206,12 @@ export default function Profile() {
         <h2 className={clsx("text-lg font-semibold mb-4")}>Recent Reviews</h2>
 
         {/* Tab Navigation */}
-        <div className={clsx("flex bg-white/5 rounded-xl p-1 mb-4")}>
+        <div className={clsx("flex bg-white/5 rounded-xl p-1 mb-4 gap-3")}>
           <button
             onClick={() => setActiveTab("received")}
             className={clsx(
               "flex-1 py-2 px-4 rounded-lg text-sm font-medium transition-all duration-200",
-              activeTab === "received" ? "bg-white/20 text-white" : "text-gray-400 hover:text-white hover:bg-white/10",
+              activeTab === "received" ? "text-black hover:text-white hover:bg-white/10" : "bg-white/20 text-white",
             )}
           >
             Received
@@ -180,7 +220,7 @@ export default function Profile() {
             onClick={() => setActiveTab("sent")}
             className={clsx(
               "flex-1 py-2 px-4 rounded-lg text-sm font-medium transition-all duration-200",
-              activeTab === "sent" ? "bg-white/20 text-white" : "text-gray-400 hover:text-white hover:bg-white/10",
+              activeTab === "sent" ? "text-black hover:text-white hover:bg-white/10" : "bg-white/20 text-white",
             )}
           >
             Sent
