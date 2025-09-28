@@ -4,26 +4,47 @@ import clsx from "clsx"
 import Image from "next/image"
 import { useEffect, useState } from "react"
 import { parseEther } from "viem"
-import { useReadContract, useWriteContract } from "wagmi"
+import { useAccount, useReadContract, useWriteContract } from "wagmi"
 import { store, updateStore } from "../../lib/store"
 
 export default function Profile() {
   const { user } = store()
+  const { address } = useAccount()
   const [newReview, setNewReview] = useState("")
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [activeTab, setActiveTab] = useState<"received" | "sent">("received")
 
   const { writeContract } = useWriteContract()
 
-  const { data, refetch, isLoading } = useReadContract({
+  const {
+    data: receivedData,
+    refetch: refetchReceived,
+    isLoading: isLoadingReceived,
+  } = useReadContract({
     abi: ABI,
     address: CA,
     functionName: "getReceivedReview",
     args: [user?.fid ? BigInt(user.fid) : BigInt(0), BigInt(0)],
   })
 
+  const {
+    data: sentData,
+    refetch: refetchSent,
+    isLoading: isLoadingSent,
+  } = useReadContract({
+    abi: ABI,
+    address: CA,
+    functionName: "getAddedReview",
+    args: [address || "0x0000000000000000000000000000000000000000", BigInt(0)],
+    query: {
+      enabled: !!address,
+    },
+  })
+
   useEffect(() => {
-    console.log(data)
-  }, ["data", data])
+    console.log("Received data:", receivedData)
+    console.log("Sent data:", sentData)
+  }, [receivedData, sentData])
 
   useEffect(() => {
     updateStore({})
@@ -104,7 +125,7 @@ export default function Profile() {
               className={clsx(
                 "flex-1 px-4 py-3 bg-white/10 border border-white/20 rounded-lg",
                 "focus:outline-none focus:ring-2 focus:ring-white/30 focus:border-white/40",
-                "text-white placeholder-gray-400",
+                "text-white text-sm placeholder-gray-400",
                 "transition-all duration-200",
               )}
               onKeyDown={e => {
@@ -144,7 +165,118 @@ export default function Profile() {
       <div className={clsx("mb-6")}>
         <h2 className={clsx("text-lg font-semibold mb-4")}>Recent Reviews</h2>
 
-        {isLoading ? (
+        {/* Tab Navigation */}
+        <div className={clsx("flex bg-white/5 rounded-xl p-1 mb-4")}>
+          <button
+            onClick={() => setActiveTab("received")}
+            className={clsx(
+              "flex-1 py-2 px-4 rounded-lg text-sm font-medium transition-all duration-200",
+              activeTab === "received" ? "bg-white/20 text-white" : "text-gray-400 hover:text-white hover:bg-white/10",
+            )}
+          >
+            Received
+          </button>
+          <button
+            onClick={() => setActiveTab("sent")}
+            className={clsx(
+              "flex-1 py-2 px-4 rounded-lg text-sm font-medium transition-all duration-200",
+              activeTab === "sent" ? "bg-white/20 text-white" : "text-gray-400 hover:text-white hover:bg-white/10",
+            )}
+          >
+            Sent
+          </button>
+        </div>
+
+        {activeTab === "received" ? (
+          isLoadingReceived ? (
+            <div className={clsx("space-y-4")}>
+              {[1, 2, 3].map(i => (
+                <div key={i} className={clsx("bg-white/5 border border-white/10 rounded-xl p-4 animate-pulse")}>
+                  <div className={clsx("flex items-center gap-3 mb-3")}>
+                    <div className={clsx("w-8 h-8 bg-white/20 rounded-full")} />
+                    <div className={clsx("flex-1")}>
+                      <div className={clsx("h-4 bg-white/20 rounded w-1/3 mb-2")} />
+                      <div className={clsx("h-3 bg-white/10 rounded w-1/4")} />
+                    </div>
+                  </div>
+                  <div className={clsx("h-4 bg-white/20 rounded w-full mb-2")} />
+                  <div className={clsx("h-4 bg-white/20 rounded w-2/3")} />
+                </div>
+              ))}
+            </div>
+          ) : receivedData ? (
+            <div className={clsx("space-y-4")}>
+              <div
+                className={clsx(
+                  "bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl overflow-hidden",
+                  "hover:bg-white/10 transition-all duration-200 cursor-pointer",
+                )}
+                onClick={() => refetchReceived()}
+              >
+                <div className={clsx("p-4")}>
+                  <div className={clsx("flex items-start gap-3 mb-3")}>
+                    <div className={clsx("flex-shrink-0")}>
+                      <div
+                        className={clsx(
+                          "relative w-8 h-8 rounded-full overflow-hidden border border-white/20",
+                          "hover:scale-105 transition-transform duration-200",
+                        )}
+                        onClick={e => {
+                          if (store.getState().capabilities?.includes("haptics.impactOccurred")) sdk.haptics.impactOccurred("light")
+                          e.stopPropagation()
+                          if (user?.fid) sdk.actions.viewProfile({ fid: user.fid })
+                        }}
+                      >
+                        <Image src={user?.pfpUrl || "/images/global/user.svg"} fill alt="Author avatar" className="object-cover" />
+                      </div>
+                    </div>
+                    <div className={clsx("flex-1 min-w-0")}>
+                      <div className={clsx("flex items-center gap-2 mb-1")}>
+                        <span className={clsx("text-sm font-medium text-white")}>
+                          {receivedData?.author.slice(0, 6)}...{receivedData?.author.slice(-4)}
+                        </span>
+                        <span
+                          className={clsx(
+                            "px-2 py-1 rounded-full text-xs font-medium",
+                            receivedData?.isPositive
+                              ? "bg-green-500/20 text-green-400 border border-green-500/30"
+                              : "bg-red-500/20 text-red-400 border border-red-500/30",
+                          )}
+                        >
+                          {receivedData?.isPositive ? "Positive" : "Negative"}
+                        </span>
+                      </div>
+                      <p className={clsx("text-gray-300 text-sm leading-relaxed")}>{receivedData?.text}</p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className={clsx("bg-white/5 border-t border-white/10 px-4 py-3")}>
+                  <div className={clsx("flex items-center justify-between text-xs text-gray-400")}>
+                    <span>{formatTimestamp(receivedData?.timestamp)}</span>
+                    <span>Tap to refresh</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          ) : (
+            <div className={clsx("text-center py-12")}>
+              <div className={clsx("w-16 h-16 bg-white/10 rounded-full flex items-center justify-center mx-auto mb-4")}>
+                <svg className={clsx("w-8 h-8 text-gray-400")} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"
+                  />
+                </svg>
+              </div>
+              <h3 className={clsx("text-lg font-medium text-white mb-2")}>No reviews received yet</h3>
+              <p className={clsx("text-gray-400 text-sm")}>Reviews about you will appear here</p>
+            </div>
+          )
+        ) : // Sent Reviews Tab
+        isLoadingSent ? (
           <div className={clsx("space-y-4")}>
             {[1, 2, 3].map(i => (
               <div key={i} className={clsx("bg-white/5 border border-white/10 rounded-xl p-4 animate-pulse")}>
@@ -160,56 +292,44 @@ export default function Profile() {
               </div>
             ))}
           </div>
-        ) : data ? (
+        ) : sentData ? (
           <div className={clsx("space-y-4")}>
             <div
               className={clsx(
                 "bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl overflow-hidden",
                 "hover:bg-white/10 transition-all duration-200 cursor-pointer",
               )}
-              onClick={() => refetch()}
+              onClick={() => refetchSent()}
             >
               <div className={clsx("p-4")}>
                 <div className={clsx("flex items-start gap-3 mb-3")}>
                   <div className={clsx("flex-shrink-0")}>
-                    <div
-                      className={clsx(
-                        "relative w-8 h-8 rounded-full overflow-hidden border border-white/20",
-                        "hover:scale-105 transition-transform duration-200",
-                      )}
-                      onClick={e => {
-                        if (store.getState().capabilities?.includes("haptics.impactOccurred")) sdk.haptics.impactOccurred("light")
-                        e.stopPropagation()
-                        if (user?.fid) sdk.actions.viewProfile({ fid: user.fid })
-                      }}
-                    >
-                      <Image src={user?.pfpUrl || "/images/global/user.svg"} fill alt="Author avatar" className="object-cover" />
+                    <div className={clsx("relative w-8 h-8 rounded-full overflow-hidden border border-white/20")}>
+                      <Image src={user?.pfpUrl || "/images/global/user.svg"} fill alt="Your avatar" className="object-cover" />
                     </div>
                   </div>
                   <div className={clsx("flex-1 min-w-0")}>
                     <div className={clsx("flex items-center gap-2 mb-1")}>
-                      <span className={clsx("text-sm font-medium text-white")}>
-                        {data?.author.slice(0, 6)}...{data?.author.slice(-4)}
-                      </span>
+                      <span className={clsx("text-sm font-medium text-white")}>You</span>
                       <span
                         className={clsx(
                           "px-2 py-1 rounded-full text-xs font-medium",
-                          data?.isPositive
+                          sentData?.isPositive
                             ? "bg-green-500/20 text-green-400 border border-green-500/30"
                             : "bg-red-500/20 text-red-400 border border-red-500/30",
                         )}
                       >
-                        {data?.isPositive ? "Positive" : "Negative"}
+                        {sentData?.isPositive ? "Positive" : "Negative"}
                       </span>
                     </div>
-                    <p className={clsx("text-gray-300 text-sm leading-relaxed")}>{data?.text}</p>
+                    <p className={clsx("text-gray-300 text-sm leading-relaxed")}>{sentData?.text}</p>
                   </div>
                 </div>
               </div>
 
               <div className={clsx("bg-white/5 border-t border-white/10 px-4 py-3")}>
                 <div className={clsx("flex items-center justify-between text-xs text-gray-400")}>
-                  <span>{formatTimestamp(data?.timestamp)}</span>
+                  <span>{formatTimestamp(sentData?.timestamp)}</span>
                   <span>Tap to refresh</span>
                 </div>
               </div>
@@ -223,12 +343,12 @@ export default function Profile() {
                   strokeLinecap="round"
                   strokeLinejoin="round"
                   strokeWidth={2}
-                  d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"
+                  d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z"
                 />
               </svg>
             </div>
-            <h3 className={clsx("text-lg font-medium text-white mb-2")}>No reviews yet</h3>
-            <p className={clsx("text-gray-400 text-sm")}>Be the first to write a review about this user</p>
+            <h3 className={clsx("text-lg font-medium text-white mb-2")}>No reviews sent yet</h3>
+            <p className={clsx("text-gray-400 text-sm")}>Reviews you write will appear here</p>
           </div>
         )}
       </div>
