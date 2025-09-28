@@ -5,7 +5,7 @@
   "scripts": {
     "fork": "clear && dotenv bunx hardhat node --fork https://base-mainnet.g.alchemy.com/v2/$ALCHEMY_API_KEY --fork-block-number 31564648",
     "test": "clear && bunx hardhat test",
-    "dev": "clear && bun run compile && bun run deploy && bun run tunnel",
+    "dev": "clear && bun run compile && bun run deploy && bun wagmi generate && bun run tunnel",
     "compile": "clear && bunx hardhat compile",
     "deploy": "clear && bunx hardhat ignition deploy ignition/modules/Reviews.ts --network localhost",
     "tunnel": "clear && ngrok http 8545"
@@ -21,6 +21,7 @@
   "dependencies": {
     "@openzeppelin/contracts": "^5.4.0",
     "@types/mocha": "^10.0.10",
+    "@wagmi/cli": "^2.5.1",
     "dotenv": "^17.2.2",
     "hardhat": "^2.26.3",
     "viem": "^2.37.8"
