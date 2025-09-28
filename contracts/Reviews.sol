@@ -11,12 +11,17 @@ struct Review {
     bool isPositive;
 }
 
+struct User {
+    uint256 reviewsCount;
+    uint256[] reviews;
+}
+
 contract Reviews is Ownable {
     mapping(uint256 => Review) public reviews;
     uint256 public reviewsCount;
 
-    mapping(address => uint256[]) public userAddedReviews;
-    mapping(uint256 => uint256[]) public userReceivedReviews;
+    mapping(address => User) public userAddedReviews;
+    mapping(uint256 => User) public userReceivedReviews;
 
     event ReviewCreated(uint256 fid, uint256 timestamp, string text, bool isPositive);
 
@@ -28,8 +33,10 @@ contract Reviews is Ownable {
         require(bytes(text).length > 0 && bytes(text).length <= 100, "Invalid text");
 
         reviews[reviewsCount] = Review(msg.sender, fid, block.timestamp, text, isPositive);
-        userAddedReviews[msg.sender].push(reviewsCount);
-        userReceivedReviews[fid].push(reviewsCount);
+        userAddedReviews[msg.sender].reviews.push(reviewsCount);
+        userAddedReviews[msg.sender].reviewsCount++;
+        userReceivedReviews[fid].reviews.push(reviewsCount);
+        userReceivedReviews[fid].reviewsCount++;
 
         reviewsCount++;
 
@@ -41,13 +48,21 @@ contract Reviews is Ownable {
     }
 
     function getAddedReview(address addr, uint256 idx) public view returns (Review memory) {
-        uint256 reviewIdx = userAddedReviews[addr][idx];
+        uint256 reviewIdx = userAddedReviews[addr].reviews[idx];
         return reviews[reviewIdx];
     }
 
+    function getAddedReviewsCount(address addr) public view returns (uint256) {
+        return userAddedReviews[addr].reviewsCount;
+    }
+
     function getReceivedReview(uint256 fid, uint256 idx) public view returns (Review memory) {
-        uint256 reviewIdx = userReceivedReviews[fid][idx];
+        uint256 reviewIdx = userReceivedReviews[fid].reviews[idx];
         return reviews[reviewIdx];
+    }
+
+    function getReceivedReviewsCount(uint256 fid) public view returns (uint256) {
+        return userReceivedReviews[fid].reviewsCount;
     }
 
     function withdraw() external onlyOwner {
