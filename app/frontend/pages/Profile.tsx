@@ -3,6 +3,7 @@ import sdk from "@farcaster/miniapp-sdk"
 import clsx from "clsx"
 import Image from "next/image"
 import { useEffect, useState } from "react"
+import { parseEther } from "viem"
 import { useReadContract, useWriteContract } from "wagmi"
 import { store, updateStore } from "../../lib/store"
 
@@ -12,12 +13,16 @@ export default function Profile() {
 
   const { writeContract } = useWriteContract()
 
-  const { data } = useReadContract({
+  const { data, refetch, isLoading } = useReadContract({
     abi: ABI,
     address: CA,
-    functionName: "getReview",
-    args: [user?.fid],
+    functionName: "getReceivedReview",
+    args: [user?.fid, 0],
   })
+
+  useEffect(() => {
+    console.log(data)
+  }, ["data", data])
 
   useEffect(() => {
     updateStore({})
@@ -25,13 +30,13 @@ export default function Profile() {
 
   const handleSubmitReview = () => {
     if (newReview.trim()) {
-      // TODO: Implement review submission logic
       console.log("New review:", newReview)
       writeContract({
         abi: ABI,
         address: CA,
         functionName: "createReview",
         args: [user?.fid, newReview, true],
+        value: parseEther("0.01"),
       })
       setNewReview("")
     }
@@ -75,10 +80,14 @@ export default function Profile() {
       </div>
 
       {Array.from({ length: 1 }).map((_, i) => (
-        <div key={i} className={clsx("bg-white text-black rounded-lg mb-3")}>
+        <div key={i} className={clsx("bg-white text-black rounded-lg mb-3")} onClick={() => refetch()}>
           <div className={clsx("flex justify-between items-center p-3")}>
             <div className={clsx("max-w-[80%] truncate")}>
-              {data ? JSON.stringify(data, (key, value) => (typeof value === "bigint" ? value.toString() : value)) : "No review data"}
+              {isLoading
+                ? "Loading..."
+                : data
+                ? JSON.stringify(data, (key, value) => (typeof value === "bigint" ? value.toString() : value))
+                : "No review data"}
             </div>
 
             <div

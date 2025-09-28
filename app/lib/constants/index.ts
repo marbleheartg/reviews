@@ -2,7 +2,7 @@ import reviewsAbi from "../../../artifacts/contracts/Reviews.sol/Reviews.json" a
 
 const ABI = reviewsAbi.abi
 
-const CA = "0x2A7EC1a948C356c3D5cf0b275B0FAa4Df10701D5"
+const CA = "0x009eb8a8a1b7c4d48c721e47894346477d2f6647"
 
 const MINIAPP_TITLE = "reviews"
 

@@ -4,14 +4,14 @@ import { WagmiAdapter } from "@reown/appkit-adapter-wagmi"
 import { createAppKit } from "@reown/appkit/react"
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
 import { defineChain } from "viem"
-import { cookieStorage, cookieToInitialState, createStorage, http, WagmiProvider, type Config } from "wagmi"
+import { cookieToInitialState, http, WagmiProvider, type Config } from "wagmi"
 import { MINIAPP_DESCRIPTION, MINIAPP_TITLE } from "../constants"
 
 const projectId = process.env.NEXT_PUBLIC_PROJECT_ID
 if (!projectId) throw new Error("Project ID is not defined")
 
 const localNetwork = defineChain({
-  id: 31337, // This matches your deployment chain ID
+  id: 31337,
   name: "Local Network",
   network: "local",
   nativeCurrency: {
@@ -33,9 +33,6 @@ const localNetwork = defineChain({
 })
 
 const wagmiAdapter = new WagmiAdapter({
-  storage: createStorage({
-    storage: cookieStorage,
-  }),
   ssr: false,
   projectId,
   networks: [localNetwork],
@@ -56,7 +53,7 @@ const wagmiAdapter = new WagmiAdapter({
 const metadata = {
   name: MINIAPP_TITLE,
   description: MINIAPP_DESCRIPTION,
-  url: `https://${process.env.NEXT_PUBLIC_HOST}`, // origin must match your domain & subdomain
+  url: `https://${process.env.NEXT_PUBLIC_HOST}`,
   icons: ["https://avatars.githubusercontent.com/u/179229932"],
 }
 

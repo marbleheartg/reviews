@@ -4,11 +4,11 @@ import { updateStore } from "@/lib/store"
 import sdk from "@farcaster/miniapp-sdk"
 import { useEffect } from "react"
 import { BrowserRouter, Route, Routes } from "react-router"
+import CustomCursor from "./components/CustomCursor"
 import Header from "./components/Header"
 import Menu from "./components/Menu"
-import CustomCursor from "./components/CustomCursor"
-import Reviews from "./pages/Reviews"
 import Profile from "./pages/Profile"
+import Reviews from "./pages/Reviews"
 
 export default function App() {
   useEffect(() => {
