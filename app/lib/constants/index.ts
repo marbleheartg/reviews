@@ -1,8 +1,8 @@
-import reviewsAbi from "../../../artifacts/contracts/Reviews.sol/Reviews.json" assert { type: "json" }
+import { reviewsAbi } from "../../../artifacts/contracts/Reviews.sol/generated"
 
-const ABI = reviewsAbi.abi
+const ABI = reviewsAbi
 
-const CA = "0x009eb8a8a1b7c4d48c721e47894346477d2f6647"
+const CA = "0x2a7ec1a948c356c3d5cf0b275b0faa4df10701d5"
 
 const MINIAPP_TITLE = "reviews"
 
