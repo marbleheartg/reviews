@@ -28,12 +28,16 @@ contract Reviews is Ownable {
         require(bytes(text).length > 0 && bytes(text).length <= 100, "Invalid text");
 
         reviews[reviewsCount] = Review(msg.sender, fid, block.timestamp, text, isPositive);
-        reviewsCount++;
-
         userAddedReviews[msg.sender].push(reviewsCount);
         userReceivedReviews[fid].push(reviewsCount);
 
+        reviewsCount++;
+
         emit ReviewCreated(fid, block.timestamp, text, isPositive);
+    }
+
+    function getReview(uint256 idx) public view returns (Review memory) {
+        return reviews[idx];
     }
 
     function getAddedReview(address addr, uint256 idx) public view returns (Review memory) {
