@@ -5,7 +5,8 @@
   "scripts": {
     "fork": "clear && dotenv bunx hardhat node --fork https://base-mainnet.g.alchemy.com/v2/$ALCHEMY_API_KEY --fork-block-number 31564648",
     "test": "clear && bunx hardhat test",
-    "dev": "clear && bun run compile && bun run deploy && bun wagmi generate && bun run tunnel",
+    "dev": "clear && bun run clean && bun run compile && bun run deploy && bun wagmi generate && bun run tunnel",
+    "clean": "clear && bunx hardhat clean",
     "compile": "clear && bunx hardhat compile",
     "deploy": "clear && bunx hardhat ignition deploy ignition/modules/Reviews.ts --network localhost",
     "tunnel": "clear && ngrok http 8545"
