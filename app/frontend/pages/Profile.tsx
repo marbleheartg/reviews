@@ -32,6 +32,20 @@ export default function Profile() {
   })
 
   const {
+    data: userReceivedReviewsCount,
+    refetch: refetchUserReceivedReviewsCount,
+    isLoading: isLoadingUserReceivedReviewsCount,
+  } = useReadContract({
+    abi: ABI,
+    address: CA,
+    functionName: "getReceivedReviewsCount",
+    args: [BigInt(user?.fid || 0)],
+    query: {
+      enabled: !!user?.fid,
+    },
+  })
+
+  const {
     data: sentData,
     refetch: refetchSent,
     isLoading: isLoadingSent,
@@ -41,7 +55,7 @@ export default function Profile() {
     functionName: "getAddedReview",
     args: [address || "0x0000000000000000000000000000000000000000", BigInt(0)],
     query: {
-      enabled: !!address,
+      enabled: !!address && !!userReceivedReviewsCount,
     },
   })
 
@@ -93,7 +107,7 @@ export default function Profile() {
         {/* Stats */}
         <div className={clsx("grid grid-cols-3 gap-4 mb-6")}>
           <div className={clsx("bg-white/5 rounded-lg p-4 text-center")}>
-            <div className={clsx("text-2xl font-bold text-white")}>0</div>
+            <div className={clsx("text-2xl font-bold text-white")}>{userReceivedReviewsCount || 0}</div>
             <div className={clsx("text-gray-400 text-sm")}>Reviews</div>
           </div>
           <div className={clsx("bg-white/5 rounded-lg p-4 text-center")}>
