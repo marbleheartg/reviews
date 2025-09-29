@@ -1,10 +1,17 @@
-import { ABI, CA } from "@/lib/constants"
+import { CA } from "@/lib/constants"
 import sdk from "@farcaster/miniapp-sdk"
 import clsx from "clsx"
 import Image from "next/image"
 import { useState } from "react"
 import { parseEther } from "viem"
-import { useAccount, useReadContract, useWriteContract } from "wagmi"
+import { useAccount } from "wagmi"
+import {
+  useReadReviewsGetReceivedReview,
+  useReadReviewsGetReceivedReviewsCount,
+  useReadReviewsGetSentReview,
+  useReadReviewsGetSentReviewsCount,
+  useWriteReviewsCreateReview,
+} from "../../../artifacts/contracts/Reviews.sol/generated"
 import { store } from "../../lib/store"
 
 export default function Profile() {
@@ -15,47 +22,49 @@ export default function Profile() {
   const [activeTab, setActiveTab] = useState<"received" | "sent">("received")
   const [reviewSentiment, setReviewSentiment] = useState<"positive" | "negative">("positive")
 
-  const { writeContract } = useWriteContract()
-
-  const {
-    data: receivedData,
-    refetch: refetchReceived,
-    isLoading: isLoadingReceived,
-  } = useReadContract({
-    abi: ABI,
-    address: CA,
-    functionName: "getReceivedReview",
-    args: [user?.fid ? BigInt(user.fid) : BigInt(0), BigInt(0)],
-    query: {
-      enabled: !!user?.fid,
-    },
-  })
+  const { writeContract: writeCreateReview } = useWriteReviewsCreateReview()
 
   const {
     data: userReceivedReviewsCount,
     refetch: refetchUserReceivedReviewsCount,
     isLoading: isLoadingUserReceivedReviewsCount,
-  } = useReadContract({
-    abi: ABI,
-    address: CA,
-    functionName: "getReceivedReviewsCount",
-    args: [BigInt(user?.fid || 0)],
+  } = useReadReviewsGetReceivedReviewsCount({
+    args: [BigInt(user?.fid!)],
     query: {
       enabled: !!user?.fid,
     },
   })
 
   const {
-    data: sentData,
-    refetch: refetchSent,
-    isLoading: isLoadingSent,
-  } = useReadContract({
-    abi: ABI,
-    address: CA,
-    functionName: "getAddedReview",
-    args: [address || "0x0000000000000000000000000000000000000000", BigInt(0)],
+    data: userReceivedReview,
+    refetch: refetchUserReceivedReview,
+    isLoading: isLoadingUserReceivedReview,
+  } = useReadReviewsGetReceivedReview({
+    args: [BigInt(user?.fid!), BigInt(0)],
     query: {
-      enabled: !!address && !!userReceivedReviewsCount,
+      enabled: !!user?.fid && !!userReceivedReviewsCount,
+    },
+  })
+
+  const {
+    data: userSentReviewsCount,
+    refetch: refetchUserSentReviewsCount,
+    isLoading: isLoadingUserSentReviewsCount,
+  } = useReadReviewsGetSentReviewsCount({
+    args: [address!],
+    query: {
+      enabled: !!address,
+    },
+  })
+
+  const {
+    data: userSentReview,
+    refetch: refetchUserSentReview,
+    isLoading: isLoadingUserSentReview,
+  } = useReadReviewsGetSentReview({
+    args: [address!, BigInt(0)],
+    query: {
+      enabled: !!address && !!userSentReviewsCount,
     },
   })
 
@@ -63,10 +72,8 @@ export default function Profile() {
     if (newReview.trim() && !isSubmitting) {
       setIsSubmitting(true)
       try {
-        await writeContract({
-          abi: ABI,
+        writeCreateReview({
           address: CA,
-          functionName: "createReview",
           args: [user?.fid ? BigInt(user.fid) : BigInt(0), newReview, reviewSentiment === "positive"],
           value: parseEther("0.01"),
         })
@@ -242,7 +249,7 @@ export default function Profile() {
         </div>
 
         {activeTab === "received" ? (
-          isLoadingReceived ? (
+          isLoadingUserReceivedReview ? (
             <div className={clsx("space-y-4")}>
               {[1, 2, 3].map(i => (
                 <div key={i} className={clsx("bg-white/5 border border-white/10 rounded-xl p-4 animate-pulse")}>
@@ -258,14 +265,14 @@ export default function Profile() {
                 </div>
               ))}
             </div>
-          ) : receivedData ? (
+          ) : userReceivedReview ? (
             <div className={clsx("space-y-4")}>
               <div
                 className={clsx(
                   "bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl overflow-hidden",
                   "hover:bg-white/10 transition-all duration-200 cursor-pointer",
                 )}
-                onClick={() => refetchReceived()}
+                onClick={() => refetchUserReceivedReview()}
               >
                 <div className={clsx("p-4")}>
                   <div className={clsx("flex items-start gap-3 mb-3")}>
@@ -287,27 +294,27 @@ export default function Profile() {
                     <div className={clsx("flex-1 min-w-0")}>
                       <div className={clsx("flex items-center gap-2 mb-1")}>
                         <span className={clsx("text-sm font-medium text-white")}>
-                          {receivedData?.author.slice(0, 6)}...{receivedData?.author.slice(-4)}
+                          {userReceivedReview?.author.slice(0, 6)}...{userReceivedReview?.author.slice(-4)}
                         </span>
                         <span
                           className={clsx(
                             "px-2 py-1 rounded-full text-xs font-medium",
-                            receivedData?.isPositive
+                            userReceivedReview?.isPositive
                               ? "bg-green-500/20 text-green-400 border border-green-500/30"
                               : "bg-red-500/20 text-red-400 border border-red-500/30",
                           )}
                         >
-                          {receivedData?.isPositive ? "Positive" : "Negative"}
+                          {userReceivedReview?.isPositive ? "Positive" : "Negative"}
                         </span>
                       </div>
-                      <p className={clsx("text-gray-300 text-sm leading-relaxed")}>{receivedData?.text}</p>
+                      <p className={clsx("text-gray-300 text-sm leading-relaxed")}>{userReceivedReview?.text}</p>
                     </div>
                   </div>
                 </div>
 
                 <div className={clsx("bg-white/5 border-t border-white/10 px-4 py-3")}>
                   <div className={clsx("flex items-center justify-between text-xs text-gray-400")}>
-                    <span>{formatTimestamp(receivedData?.timestamp)}</span>
+                    <span>{formatTimestamp(userReceivedReview?.timestamp)}</span>
                     <span>Tap to refresh</span>
                   </div>
                 </div>
@@ -330,7 +337,7 @@ export default function Profile() {
             </div>
           )
         ) : // Sent Reviews Tab
-        isLoadingSent ? (
+        isLoadingUserSentReview ? (
           <div className={clsx("space-y-4")}>
             {[1, 2, 3].map(i => (
               <div key={i} className={clsx("bg-white/5 border border-white/10 rounded-xl p-4 animate-pulse")}>
@@ -346,14 +353,14 @@ export default function Profile() {
               </div>
             ))}
           </div>
-        ) : sentData ? (
+        ) : userSentReview ? (
           <div className={clsx("space-y-4")}>
             <div
               className={clsx(
                 "bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl overflow-hidden",
                 "hover:bg-white/10 transition-all duration-200 cursor-pointer",
               )}
-              onClick={() => refetchSent()}
+              onClick={() => refetchUserSentReview()}
             >
               <div className={clsx("p-4")}>
                 <div className={clsx("flex items-start gap-3 mb-3")}>
@@ -368,22 +375,22 @@ export default function Profile() {
                       <span
                         className={clsx(
                           "px-2 py-1 rounded-full text-xs font-medium",
-                          sentData?.isPositive
+                          userSentReview?.isPositive
                             ? "bg-green-500/20 text-green-400 border border-green-500/30"
                             : "bg-red-500/20 text-red-400 border border-red-500/30",
                         )}
                       >
-                        {sentData?.isPositive ? "Positive" : "Negative"}
+                        {userSentReview?.isPositive ? "Positive" : "Negative"}
                       </span>
                     </div>
-                    <p className={clsx("text-gray-300 text-sm leading-relaxed")}>{sentData?.text}</p>
+                    <p className={clsx("text-gray-300 text-sm leading-relaxed")}>{userSentReview?.text}</p>
                   </div>
                 </div>
               </div>
 
               <div className={clsx("bg-white/5 border-t border-white/10 px-4 py-3")}>
                 <div className={clsx("flex items-center justify-between text-xs text-gray-400")}>
-                  <span>{formatTimestamp(sentData?.timestamp)}</span>
+                  <span>{formatTimestamp(userSentReview?.timestamp)}</span>
                   <span>Tap to refresh</span>
                 </div>
               </div>
