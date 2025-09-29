@@ -1,4 +1,5 @@
 import { defineConfig } from "@wagmi/cli";
+import { react } from "@wagmi/cli/plugins";
 import { Abi } from "viem";
 import reviewsAbi from "./artifacts/contracts/Reviews.sol/Reviews.json";
 
@@ -10,5 +11,5 @@ export default defineConfig({
       abi: reviewsAbi.abi as Abi,
     },
   ],
-  plugins: [],
+  plugins: [react()],
 });
