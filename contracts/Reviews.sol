@@ -13,6 +13,8 @@ struct Review {
 
 struct User {
     uint256 reviewsCount;
+    uint256 positiveReviewsCount;
+    uint256 negativeReviewsCount;
     uint256[] reviews;
 }
 
@@ -33,10 +35,15 @@ contract Reviews is Ownable {
         require(bytes(text).length > 0 && bytes(text).length <= 100, "Invalid text");
 
         reviews[reviewsCount] = Review(msg.sender, fid, block.timestamp, text, isPositive);
+
         userAddedReviews[msg.sender].reviews.push(reviewsCount);
         userAddedReviews[msg.sender].reviewsCount++;
+
         userReceivedReviews[fid].reviews.push(reviewsCount);
         userReceivedReviews[fid].reviewsCount++;
+
+        if (isPositive) userReceivedReviews[fid].positiveReviewsCount++;
+        else userReceivedReviews[fid].negativeReviewsCount++;
 
         reviewsCount++;
 
