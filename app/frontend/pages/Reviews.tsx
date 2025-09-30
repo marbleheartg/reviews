@@ -1,8 +1,7 @@
-import { ABI, CA } from "@/lib/constants"
 import clsx from "clsx"
 import Image from "next/image"
 import { useState } from "react"
-import { useReadContract } from "wagmi"
+import { useReadReviewsGetReview } from "../../../artifacts/contracts/Reviews.sol/generated"
 import { store } from "../../lib/store"
 
 export default function Reviews() {
@@ -12,15 +11,9 @@ export default function Reviews() {
 
   // Fetch all reviews (this would need to be implemented in the contract)
   // For now, we'll use a mock approach with the existing contract functions
-  const {
-    data: reviews,
-    isLoading,
-    refetch,
-  } = useReadContract({
-    abi: ABI,
-    address: CA,
-    functionName: "getReview",
-    args: [BigInt(0)], // This would need to be updated based on actual contract implementation
+
+  const { data: review, isLoading } = useReadReviewsGetReview({
+    args: [BigInt(0)],
     query: {
       enabled: true,
     },
