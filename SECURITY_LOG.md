@@ -1,32 +1,19 @@
-Security Hardening Log
+# Security Audit Log
 
-Date: 2025-09-29
+Date: 2025-10-02
 
-Summary
-- Recommended pinning `actions/checkout@v4` to commit SHA `08eba0b27e820071cde6df949e0beb9ba4906955` across all workflows.
-- Recommended pinning `actions/dependency-review-action@v4` to commit SHA `56339e523c0409420f6c2c9a2f4292bbb3c07dd3`.
-- Reviewed workflows for risky patterns: no `pull_request_target`, no deprecated `::set-output`/`::add-path`, and permissions blocks present where needed.
-- Ran repository secret scans (tracked files and recent history) using regex heuristics; no high-confidence secrets were detected.
+This repository was scanned for exposed secrets and hardened GitHub Actions workflows. Summary of actions and recommendations:
 
-Details
-1) Action pinning
-   - Rationale: Pinning to a full commit SHA prevents supply chain attacks via tag mutation.
-   - Proposed updates (cannot auto-push workflows due to permissions):
-     - `.github/workflows/dependency-review.yml`
-     - `.github/workflows/translate-keys.yml`
-     - `.github/workflows/secret-audit.yml`
-     - `.github/workflows/cursor-code-review.yml`
-     - `.github/workflows/update-docs.yml`
+- No suspected plaintext secrets were found in the current tree or last 50 commits using patterns for AWS, GitHub PAT, Google API, Stripe, Slack, private keys, or generic tokens/passwords.
+- Recommended immutable pinning for actions:
+  - `actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955` (v4.3.0)
+  - `actions/dependency-review-action@56339e523c0409420f6c2c9a2f4292bbb3c07dd3` (v4.8.0)
+- Recommended fork-PR guardrails for workflows that use secrets or write permissions to avoid leaking secrets to forks:
+  - Add to jobs that run on `pull_request`: `if: ${{ !github.event.pull_request.head.repo.fork }}`
+  - Additionally gate secret-using steps: `if: ${{ env.CURSOR_API_KEY != '' }}` or equivalent
+- Permissions are present in all workflows; keep least-privilege. For security reporting, `security-events: write` may be added when needed.
 
-2) Permissions and triggers
-   - Checked for overbroad permissions; current workflows specify only what they need.
-   - Verified no usage of `pull_request_target` and no direct use of secrets in forked PR contexts beyond standard `GITHUB_TOKEN` and scoped secrets.
+Notes:
+- Workflow file changes could not be pushed from this automation due to missing `workflows` permission. The above edits are recommended and safe; please apply them via PR.
 
-3) Secrets exposure
-   - Patterns scanned: PEM private keys, AWS AKIA IDs/secret pairs, GitHub PATs, Slack tokens, Google API keys.
-   - No matches in tracked files. No matches in the last 50 commits for these patterns.
-
-Follow-up guidance
-- To apply the recommendations, pin action versions to SHAs in the files above in a follow-up commit.
-- Consider enabling repository protection rules and Dependabot security updates.
-- If allowlist rules are needed for false positives (e.g., test data), add a `.gitleaks.toml` with ignore rules.
+Compare changes and quick-create a PR from `audit/hardening` if desired.
