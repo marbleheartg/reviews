@@ -20,17 +20,19 @@ Compare changes and quick-create a PR from `audit/hardening` if desired.
 
 ---
 
-Date: 2025-10-05
+Date: 2025-10-06
 
-This run performed a secrets scan and workflow hardening review.
+This run performed a secrets scan (tracked files and recent history) and a workflow hardening review.
 
-- No suspected plaintext secrets found in working tree or last 100 commits (AWS, GitHub PAT, Slack, private keys, generic tokens/passwords). No allowlist file `.gitleaks.toml` was found.
-- Recommended immutable pinning (unchanged since prior run):
+- No suspected plaintext secrets found in working tree; no hits for AWS, PAT, Google, Stripe, Slack, or private keys.
+- No `.gitleaks.toml` allowlist found. Consider adding one if you intentionally keep test tokens.
+- Recommended immutable pinning (latest stable v4 SHAs at time of scan):
   - `actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955`
   - `actions/dependency-review-action@56339e523c0409420f6c2c9a2f4292bbb3c07dd3`
-- Recommended fork-PR guardrails on write-capable jobs running on `pull_request`:
-  - Add: `if: ${{ !github.event.pull_request.head.repo.fork }}` to jobs using secrets or writing to repo/PRs.
-- Permissions: consider least privilege per job; many jobs can use `contents: read` and omit `pull-requests: write` unless posting summaries.
-- Note: Workflow file edits could not be pushed by this automation due to missing `workflows` permission; recommendations are recorded here and can be applied via PR.
+- Fork-PR guardrails: add `if: ${{ !github.event.pull_request.head.repo.fork }}` on jobs that write or use secrets in `translate-keys.yml`, `update-docs.yml`, and `cursor-code-review.yml`.
+- Harden curl invocations with `-fsSL --proto '=https' --tlsv1.2`.
+- Permissions: keep least-privilege; add job-level `permissions:` only where needed.
+
+Note: Workflow edits could not be pushed by this automation due to missing `workflows` permission. The above are proposed changes; please apply via PR.
 
 Quick compare to open a PR from `audit/hardening` against `main`: https://github.com/marbleheartg/reviews/compare/main...audit/hardening?expand=1
