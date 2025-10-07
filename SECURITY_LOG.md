@@ -36,3 +36,19 @@ This run performed a secrets scan (tracked files and recent history) and a workf
 Note: Workflow edits could not be pushed by this automation due to missing `workflows` permission. The above are proposed changes; please apply via PR.
 
 Quick compare to open a PR from `audit/hardening` against `main`: https://github.com/marbleheartg/reviews/compare/main...audit/hardening?expand=1
+
+---
+
+Date: 2025-10-07
+
+This run performed a secrets scan (tracked files and recent history) and a workflow hardening review.
+
+- No suspected plaintext secrets found; no `.gitleaks.toml` allowlist detected.
+- Proposed minimal hardening (recorded here for maintainers):
+  - Pin `actions/checkout` and `actions/dependency-review-action` to immutable commit SHAs.
+  - Gate jobs that use secrets or write permissions on non-fork PRs.
+  - Harden `curl` invocations with `-fsSL --proto '=https' --tlsv1.2`.
+  - Keep `permissions:` least-privilege; prefer job-level scopes.
+- Note: Workflow file edits require `workflows` permission and could not be pushed by this automation.
+
+Quick compare to open a PR from `audit/hardening` against `main`: https://github.com/marbleheartg/reviews/compare/main...audit/hardening?expand=1
