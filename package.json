@@ -12,7 +12,7 @@
   "dependencies": {
     "@farcaster/auth-client": "^0.7.0",
     "@farcaster/miniapp-node": "^0.1.9",
-    "@farcaster/miniapp-sdk": "^0.1.10",
+    "@farcaster/miniapp-sdk": "^0.2.0",
     "@farcaster/miniapp-wagmi-connector": "^1.0.0",
     "@farcaster/quick-auth": "^0.0.8",
     "@reown/appkit": "^1.8.7",
