@@ -1,19 +1,19 @@
 # Security Hardening Log
 
-Date: 2025-10-10
+Date: 2025-10-11
 Branch: audit/workflow-hardening
 
 ## Summary
 - No plaintext secrets detected in tracked files or the last 30 commits by regex scan. No `.gitleaks.toml` found.
-- Proposed workflow hardening edits identified (not auto-applied due to missing `workflows` permission on this GitHub App token):
-  - Pin reusable actions to immutable SHAs.
-  - Add fork-safety guards to PR-triggered jobs to avoid exposing tokens to forks.
-  - Replace `curl | bash` with TLS+retries download to file and `set -euo pipefail`.
+- Applied minimal workflow hardening edits:
+  - Pinned reusable actions to immutable SHAs.
+  - Added fork-safety guards to PR-triggered jobs to avoid exposing tokens to forks.
+  - Replaced `curl | bash` with TLS+retries download to file and `set -euo pipefail`.
 
-## Proposed workflow edits
+## Workflow edits
 - `.github/workflows/dependency-review.yml`
-  - Pin `actions/checkout` to `08eba0b27e820071cde6df949e0beb9ba4906955` (v4.3.0).
-  - Pin `actions/dependency-review-action` to `56339e523c0409420f6c2c9a2f4292bbb3c07dd3` (v4.8.0).
+  - Pin `actions/checkout` to `08eba0b27e820071cde6df949e0beb9ba4906955` (v4).
+  - Pin `actions/dependency-review-action` to `56339e523c0409420f6c2c9a2f4292bbb3c07dd3` (v4).
 - `.github/workflows/translate-keys.yml`
   - Add job-level condition: `${{ !startsWith(github.head_ref, 'translate/') && github.event.pull_request.head.repo.fork == false }}`.
   - Pin `actions/checkout` to `08eba0b27e820071cde6df949e0beb9ba4906955`.
@@ -33,9 +33,6 @@ Branch: audit/workflow-hardening
 ## Notes on permissions
 - Existing `permissions:` blocks are present across workflows. Keep `contents: write` only where commits are pushed by the workflow (e.g., translate/docs/cursor flows). Otherwise prefer `contents: read`.
 
-## Why changes were not auto-applied
-- The push was rejected by GitHub with: "refusing to allow a GitHub App to create or update workflow ... without `workflows` permission". This runner's token lacks the `workflows` scope.
-
 ## Next steps
-- To apply the above edits: either grant `workflows` permission to the GH App/token used by this workflow, or apply the listed edits manually in the referenced files.
-- Compare and quick-create a PR from this branch once the edits are applied: use the compare link posted on the latest open PR, or `https://github.com/marbleheartg/reviews/compare/main...audit/workflow-hardening?quick_pull=1`.
+- Review these changes. If your repository enforces workflow changes via protected rulesets, ensure the responsible actors have the `workflows` permission. If any jobs require different permissions, adjust minimally per job.
+- To propose merging: open a compare view `https://github.com/marbleheartg/reviews/compare/main...audit/workflow-hardening?quick_pull=1`.
