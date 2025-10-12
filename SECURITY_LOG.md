@@ -1,30 +1,31 @@
 # Security Hardening Log
 
-Date: 2025-10-09
+Date: 2025-10-12
+Branch: audit/gha-hardening
 
-This repository was audited for potential secret exposure and GitHub Actions workflow risks. Minimal safe changes were proposed. Workflow file edits were not pushed due to repository protections; maintainers can apply the suggestions below.
+Summary of changes
+- Proposed: Pin GitHub Actions to immutable commit SHAs for supply-chain safety.
+- Proposed: Tighten workflow steps for forked PRs to avoid writing from forks.
+- Proposed: Normalize installer invocations with safer curl flags.
 
-## Summary of Changes
+Details (proposed edits for maintainers)
+- .github/workflows/dependency-review.yml
+  - Pin actions/checkout to 08eba0b27e820071cde6df949e0beb9ba4906955
+  - Pin actions/dependency-review-action to 45529485b5eb76184ced07362d2331fd9d26f03f
+- .github/workflows/translate-keys.yml
+  - Pin actions/checkout
+  - Add fork guard on steps that write (git config, cursor-agent)
+  - Harden curl flags and quoting
+- .github/workflows/update-docs.yml
+  - Pin actions/checkout
+  - Add fork guard on steps that write (git config, cursor-agent)
+  - Harden curl flags and quoting
+- .github/workflows/cursor-code-review.yml
+  - Pin actions/checkout
+- .github/workflows/secret-audit.yml
+  - Pin actions/checkout
+  - Harden curl flags and quoting
 
-- Pinned `actions/checkout@v4` to commit `08eba0b27e820071cde6df949e0beb9ba4906955` across all workflows.
-- Pinned `actions/dependency-review-action@v4` to commit `56339e523c0409420f6c2c9a2f4292bbb3c07dd3`.
-- Added fork-PR guardrails to workflows that use repository secrets or write permissions to avoid secrets exposure in forked pull requests.
-- Tightened default workflow permissions for dependency review at the workflow level while keeping `pull-requests: write` for PR summary comments.
-
-## Findings
-
-- No plaintext secrets or private keys were found in tracked files. `.env.template` contains placeholders only.
-- No insecure deprecated commands (e.g., `::set-output`) were detected.
-- No `pull_request_target` triggers are in use.
-
-## Recommendations
-
-- Maintain action pinning by SHA and update pins on a regular cadence.
-- Keep permissions as minimal as possible; grant `write` scopes only when features explicitly require them.
-- If introducing new workflows that use secrets, ensure they do not run on forked PR events or add explicit conditionals to prevent secret exposure.
-
-## Proposed workflow edits (maintainer action required)
-
-- Pin `actions/checkout@v4` to `08eba0b27e820071cde6df949e0beb9ba4906955` in all workflows.
-- Pin `actions/dependency-review-action@v4` to `56339e523c0409420f6c2c9a2f4292bbb3c07dd3`.
-- Add fork-PR guardrails to jobs that use repository secrets or grant write permissions, for example: `if: ${{ !startsWith(github.head_ref, 'docs/') && github.event.pull_request.head.repo.fork == false }}`.
+Notes
+- No secrets found in tracked files or in recent 90-day history by regex scan. Consider enabling gitleaks in CI for broader coverage.
+- Some jobs request write on pull-requests; if not strictly needed, reduce to minimal scopes.
