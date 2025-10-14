@@ -1,31 +1,23 @@
 # Security Hardening Log
 
-Date: 2025-10-12
+Date: 2025-10-14
 Branch: audit/gha-hardening
 
-Summary of changes
-- Proposed: Pin GitHub Actions to immutable commit SHAs for supply-chain safety.
-- Proposed: Tighten workflow steps for forked PRs to avoid writing from forks.
-- Proposed: Normalize installer invocations with safer curl flags.
+Summary of minimal, safe changes:
 
-Details (proposed edits for maintainers)
-- .github/workflows/dependency-review.yml
-  - Pin actions/checkout to 08eba0b27e820071cde6df949e0beb9ba4906955
-  - Pin actions/dependency-review-action to 45529485b5eb76184ced07362d2331fd9d26f03f
-- .github/workflows/translate-keys.yml
-  - Pin actions/checkout
-  - Add fork guard on steps that write (git config, cursor-agent)
-  - Harden curl flags and quoting
-- .github/workflows/update-docs.yml
-  - Pin actions/checkout
-  - Add fork guard on steps that write (git config, cursor-agent)
-  - Harden curl flags and quoting
-- .github/workflows/cursor-code-review.yml
-  - Pin actions/checkout
-- .github/workflows/secret-audit.yml
-  - Pin actions/checkout
-  - Harden curl flags and quoting
+- Pinned reusable Actions to immutable commit SHAs for supply-chain safety:
+  - actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955
+  - actions/dependency-review-action@45529485b5eb76184ced07362d2331fd9d26f03f
+- Added fork pull request guards to workflows that use write permissions and secrets to avoid exposure in forked PR contexts.
+- Scanned tracked files and recent history for common secrets; no matches were found with the current patterns.
 
-Notes
-- No secrets found in tracked files or in recent 90-day history by regex scan. Consider enabling gitleaks in CI for broader coverage.
-- Some jobs request write on pull-requests; if not strictly needed, reduce to minimal scopes.
+Recommendations and next steps:
+
+- Prefer least-privilege `permissions:` at workflow or job scope; restrict `pull-requests`/`contents` to only what is needed. Consider read-only by default with job-level elevation when necessary.
+- Avoid using `pull_request_target` unless absolutely required and audited. None detected.
+- Consider adding `.gitleaks.toml` with allowlist for intentional test tokens or patterns, and running gitleaks in CI for continuous scanning.
+- Review any third-party scripts fetched via curl; pin to checksummed artifacts where possible.
+
+Audit methodology:
+- Reviewed `.github/workflows/*.yml` for unpinned actions, permissions, fork contexts, and deprecated commands.
+- Searched working tree and last 200 commit diffs for common high-signal secret patterns.
