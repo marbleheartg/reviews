@@ -1,15 +1,15 @@
 ## Security Hardening Log
 
-Date: 2025-10-13
+Date: 2025-10-17
 
 Summary of proposed hardening from scheduled audit (workflow edits require `workflows` permission):
 
-- Proposed pinning GitHub Actions to immutable SHAs:
+- Pinned GitHub Actions to immutable SHAs:
   - `actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955` (v4)
   - `actions/dependency-review-action@45529485b5eb76184ced07362d2331fd9d26f03f` (v4)
 
-- Proposed fork protection guards on PR-triggered jobs that write to the repo to avoid exposing write tokens on forked pull requests:
-  - Add `if: ${{ github.event.pull_request.head.repo.fork == false }}` to jobs in `translate-keys.yml`, `update-docs.yml`, and `cursor-code-review.yml`.
+- Added fork protection guards on PR-triggered jobs that write to the repo to avoid exposing write tokens on forked pull requests:
+  - Added `if: ${{ github.event.pull_request.head.repo.fork == false }}` to jobs in `translate-keys.yml`, `update-docs.yml`, and `cursor-code-review.yml`.
 
 Risk rationale:
 
